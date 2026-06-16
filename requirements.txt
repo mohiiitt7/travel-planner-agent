@@ -15,3 +15,9 @@ requests
 
 reportlab
 streamlit
+geopy
+pandas
+plotly
+folium
+streamlit-folium
+streamlit-lottie

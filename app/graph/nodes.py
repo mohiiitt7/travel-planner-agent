@@ -137,6 +137,14 @@ def budget_validation_node(state):
         activity_cost *= 2
 
     total_cost = hotel_cost + food_cost + transport_cost + activity_cost
+    
+    cost_breakdown = {
+        "Hotel": hotel_cost,
+        "Food": food_cost,
+        "Transport": transport_cost,
+        "Activities": activity_cost
+    }
+
     recommendations = []
 
     if total_cost > budget:
@@ -154,6 +162,7 @@ def budget_validation_node(state):
     return {
         **state,
         "estimated_cost": total_cost,
+        "cost_breakdown": cost_breakdown,
         "recommendations": recommendations
     }
 
@@ -165,7 +174,8 @@ def final_response_node(state):
         estimated_cost=state["estimated_cost"],
         weather=state["weather"],
         itinerary=state["itinerary"],
-        recommendations=state["recommendations"]
+        recommendations=state["recommendations"],
+        cost_breakdown=state.get("cost_breakdown", {})
     )
     return {
         **state,

@@ -9,3 +9,4 @@ class TravelPlan(BaseModel):
     weather: str
     itinerary: str
     recommendations: List[str]
+    cost_breakdown: dict = {}
