@@ -329,6 +329,57 @@ html, body, [class*="css"] {
     white-space: pre-wrap;
 }
 
+/* Day card */
+.day-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+.day-card:hover {
+    box-shadow: 0 4px 24px rgba(102,126,234,0.2);
+}
+.day-card-header {
+    padding: 1rem 1.4rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+}
+.day-card-header.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+.day-card-header.inactive {
+    background: rgba(102,126,234,0.15);
+    color: rgba(255,255,255,0.75);
+}
+.day-card-body {
+    padding: 1.2rem 1.5rem;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.93rem;
+    line-height: 1.85;
+    white-space: pre-wrap;
+    border-top: 1px solid rgba(255,255,255,0.07);
+}
+.day-activity-line {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.day-activity-line:last-child { border-bottom: none; }
+.day-bullet {
+    color: #a78bfa;
+    font-size: 1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
 /* Recommendation pills */
 .rec-pill {
     display: inline-block;
@@ -811,21 +862,47 @@ with tab1:
         with col_l:
             st.markdown('<div class="section-title">🗓️ Full Itinerary</div>', unsafe_allow_html=True)
 
+            day_emojis = ["🌅","🌞","🌆","🌙","⭐","🏖️","🗺️","🎯","🏔️","🌺"]
+
             if len(day_map_data) > 1:
                 raw_days = re.split(r'(?i)(Day\s+\d+[:\-]?)', itinerary_text)
+                # intro text before Day 1
                 if raw_days[0].strip():
                     st.markdown(f'<div class="itinerary-block">{raw_days[0]}</div>', unsafe_allow_html=True)
+
                 for i in range(1, len(raw_days), 2):
                     day_header = raw_days[i].strip()
                     day_content = raw_days[i+1].strip() if i+1 < len(raw_days) else ""
                     day_num_match = re.search(r'\d+', day_header)
                     this_day = int(day_num_match.group()) if day_num_match else 0
                     is_selected = (this_day == selected_day)
-                    with st.expander(
-                        f"{'🔵 ' if is_selected else ''}{day_header}",
-                        expanded=is_selected
-                    ):
-                        st.markdown(day_content)
+                    emoji = day_emojis[(this_day - 1) % len(day_emojis)]
+                    header_class = "active" if is_selected else "inactive"
+                    badge = "<span style='background:rgba(255,255,255,0.25);border-radius:999px;padding:2px 10px;font-size:0.75rem;font-weight:600;letter-spacing:1px'>SELECTED</span>" if is_selected else ""
+
+                    # Build activity lines
+                    lines = [l.strip() for l in day_content.split('\n') if l.strip()]
+                    activities_html = ""
+                    for line in lines:
+                        # Clean up bullet chars
+                        clean = re.sub(r'^[-•*▪▸►>]+\s*', '', line)
+                        if clean:
+                            activities_html += f"""
+                            <div class="day-activity-line">
+                                <span class="day-bullet">▸</span>
+                                <span>{clean}</span>
+                            </div>"""
+
+                    st.markdown(f"""
+                    <div class="day-card">
+                        <div class="day-card-header {header_class}">
+                            {emoji} Day {this_day} {badge}
+                        </div>
+                        <div class="day-card-body">
+                            {activities_html if activities_html else day_content}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
             else:
                 st.markdown(
                     f'<div class="itinerary-block">{itinerary_text}</div>',
