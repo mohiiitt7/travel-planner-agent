@@ -143,7 +143,23 @@ def geocode_places(place_names, destination):
             cache[cache_key] = (lat, lon)
 
         if lat and lon:
+            # Basic sanity check: we can calculate rough distance from city center later, 
+            # but for now, just append
             results.append({"name": name, "lat": lat, "lon": lon})
+
+    # Filter out wild outliers (if we have a destination lat/lon)
+    try:
+        dest_loc = geolocator.geocode(destination, language='en')
+        if dest_loc and len(results) > 0:
+            d_lat, d_lon = dest_loc.latitude, dest_loc.longitude
+            # Keep only locations within roughly ~2 degrees (approx 200km)
+            valid_results = []
+            for r in results:
+                if abs(r['lat'] - d_lat) < 2.5 and abs(r['lon'] - d_lon) < 2.5:
+                    valid_results.append(r)
+            results = valid_results
+    except Exception:
+        pass
 
     st.session_state.geocode_cache = cache
     return results
@@ -887,22 +903,17 @@ with tab1:
                         # Clean up bullet chars
                         clean = re.sub(r'^[-•*▪▸►>]+\s*', '', line)
                         if clean:
-                            activities_html += f"""
-                            <div class="day-activity-line">
-                                <span class="day-bullet">▸</span>
-                                <span>{clean}</span>
-                            </div>"""
+                            activities_html += f'<div class="day-activity-line"><span class="day-bullet">▸</span><span>{clean}</span></div>\n'
 
-                    st.markdown(f"""
-                    <div class="day-card">
-                        <div class="day-card-header {header_class}">
-                            {emoji} Day {this_day} {badge}
-                        </div>
-                        <div class="day-card-body">
-                            {activities_html if activities_html else day_content}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    html_str = f"""<div class="day-card">
+    <div class="day-card-header {header_class}">
+        {emoji} Day {this_day} {badge}
+    </div>
+    <div class="day-card-body">
+        {activities_html if activities_html else day_content}
+    </div>
+</div>"""
+                    st.markdown(html_str, unsafe_allow_html=True)
             else:
                 st.markdown(
                     f'<div class="itinerary-block">{itinerary_text}</div>',
