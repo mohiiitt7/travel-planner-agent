@@ -903,16 +903,10 @@ with tab1:
                         # Clean up bullet chars
                         clean = re.sub(r'^[-•*▪▸►>]+\s*', '', line)
                         if clean:
-                            activities_html += f'<div class="day-activity-line"><span class="day-bullet">▸</span><span>{clean}</span></div>\n'
+                            activities_html += f'<div class="day-activity-line"><span class="day-bullet">▸</span><span>{clean}</span></div>'
 
-                    html_str = f"""<div class="day-card">
-    <div class="day-card-header {header_class}">
-        {emoji} Day {this_day} {badge}
-    </div>
-    <div class="day-card-body">
-        {activities_html if activities_html else day_content}
-    </div>
-</div>"""
+                    body_content = activities_html if activities_html else day_content.replace('\n', '<br>')
+                    html_str = f'<div class="day-card"><div class="day-card-header {header_class}">{emoji} Day {this_day} {badge}</div><div class="day-card-body">{body_content}</div></div>'
                     st.markdown(html_str, unsafe_allow_html=True)
             else:
                 st.markdown(
